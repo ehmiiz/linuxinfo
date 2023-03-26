@@ -1,5 +1,7 @@
 # linuxinfo
 
+![Figure 1-1](linuxinfoico.png)
+
 Contains functions that help with getting valuable information on a linux system
 
 ## Completed functions:
