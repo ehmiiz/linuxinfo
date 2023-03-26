@@ -1,6 +1,9 @@
 # linuxinfo
 
-![Figure 1-1](linuxinfoico.png)
+<p align="center">
+  <img src="linuxinfoico.png" />
+</p>
+
 
 Contains functions that help with getting valuable information on a linux system
 
