@@ -1,10 +1,27 @@
 # linuxinfo
 
-Contains functions that help with getting valuable information on a linux system
+Get valuable information on a linux system using PowerShell!
 
 <p align="center">
   <img src="linuxinfoico.png" />
 </p>
+
+## Install from git
+
+
+```powershell
+Set-Location $env:PSModulePath.Split(":")[0]
+git clone https://github.com/ehmiiz/linuxinfo.git
+New-Item -ItemType Directory -Name 0.0.1 -Path ./linuxinfo/
+Move-Item ./linuxinfo/src/* -Destination ./linuxinfo/0.0.1/
+Import-Module linuxinfo -Force -Verbose
+```
+## Install from gallery (not published yet)
+
+```powershell
+Install-Module linuxinfo -Verbose
+Import-Module linuxinfo -Force -Verbose
+```
 
 ## Completed functions:
 
