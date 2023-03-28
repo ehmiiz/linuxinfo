@@ -6,7 +6,7 @@ Get valuable information on a linux system using PowerShell!
   <img src="linuxinfoico.png" />
 </p>
 
-## Install from git
+## Install from GitHub using git
 
 
 ```powershell
@@ -16,7 +16,7 @@ New-Item -ItemType Directory -Name 0.0.1 -Path ./linuxinfo/
 Move-Item ./linuxinfo/src/* -Destination ./linuxinfo/0.0.1/
 Import-Module linuxinfo -Force -Verbose
 ```
-## Install from gallery (not published yet)
+## Install from PowerShellGallery (not published yet)
 
 ```powershell
 Install-Module linuxinfo -Verbose
