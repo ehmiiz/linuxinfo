@@ -27,7 +27,7 @@ class directorys : System.Management.Automation.IValidateSetValuesGenerator {
         $directoryNames = @{
             "bin"        = "essential user binaries"
             "boot"       = "boot loader files"
-            "dev"        = "device files"
+            "dev"        = "device files for hardware access"
             "etc"        = "system-global configuration files"
             "home"       = "users home directories"
             "lib"        = "system libraries and kernel modules"
@@ -57,32 +57,32 @@ class directorys : System.Management.Automation.IValidateSetValuesGenerator {
 function Get-FileSystemHelp {
     <#
 
-.DESCRIPTION
-    Will display helpful information regarding the linux root directorys
+    .DESCRIPTION
+        Will display helpful information regarding the linux root directorys
 
-.EXAMPLE
-    ldexplain bin
-        Uses the alias "ldexplain" and the mandatory parameter "Name" to display
-        information regarding the bin directory
+    .EXAMPLE
+        ldexplain bin
+            Uses the alias "ldexplain" and the mandatory parameter "Name" to display
+            information regarding the bin directory
 
-.EXAMPLE
-    ldexplain etc -go
-        Uses the alias "ldexplain" and the mandatory parameter "Name" to display
-        information regarding the etc directory, uses switch paramter "go" to set
-        the location to \etc
-.EXAMPLE
-    ldexplain -all
-        Uses the alias "ldexplain" and the switch paramter "all" to display information
-        regarding all root directorys in the linux filesystem
-.EXAMPLE
-    ldexplain root -f
-        Uses the alias "ldexplain" and the switch paramter "Full" to display the full
-        information regarding all root directorys in the linux filesystem
+    .EXAMPLE
+        ldexplain etc -go
+            Uses the alias "ldexplain" and the mandatory parameter "Name" to display
+            information regarding the etc directory, uses switch paramter "go" to set
+            the location to \etc
+    .EXAMPLE
+        ldexplain -all
+            Uses the alias "ldexplain" and the switch paramter "all" to display information
+            regarding all root directorys in the linux filesystem
+    .EXAMPLE
+        ldexplain root -f
+            Uses the alias "ldexplain" and the switch paramter "Full" to display the full
+            information regarding all root directorys in the linux filesystem
 
-.NOTES
-#>
+    .NOTES
+    #>
+[CmdletBinding(DefaultParameterSetName = 'Name')]
     param(
-        [CmdletBinding(DefaultParameterSetName = 'Name')]
         [Parameter(Mandatory = $true,
             ParameterSetName = 'Name',
             Position = 0)]

@@ -28,10 +28,22 @@ function Get-BatteryInfo {
 
     $FilteredData = $FilteredData.Replace('  ', '').Replace(": ", ":")
 
+    # Time to empty
+    if ($FilteredData -like "*time to empty*") {
+        $TimeToEmpty = $FilteredData[11].Split(":")[1]
+        $ArrayPatchInt = 0
+    }
+    else {
+        $TimeToEmpty = $FilteredData[2].Split(":")[1]
+        $ArrayPatchInt = 1
+    }
+
+    $RechargeableState = if ($FilteredData[1].Split(":")[1] -eq 'yes' ) { $true } else { $false }
+
     # Build Object
     $Object = [PSCustomObject]@{
         Model            = $FilteredData[0].Split(":")[1]
-        Rechargeable     = if ($FilteredData[1].Split(":")[1] -eq 'yes' ) { $true } else { false }
+        Rechargeable     = $RechargeableState
         State            = $FilteredData[2].Split(":")[1]
         WarningLevel     = $FilteredData[3].Split(":")[1]
         Energy           = $FilteredData[4].Split(":")[1]
@@ -41,10 +53,10 @@ function Get-BatteryInfo {
         EnergyRate       = $FilteredData[8].Split(":")[1]
         Voltage          = $FilteredData[9].Split(":")[1]
         ChargeCycles     = $FilteredData[10].Split(":")[1]
-        TimeToEmpty      = $FilteredData[11].Split(":")[1]
-        Percentage       = $FilteredData[12].Split(":")[1]
-        Capacity         = $FilteredData[13].Split(":")[1]
-        Technology       = $FilteredData[14].Split(":")[1]
+        TimeToEmpty      = $TimeToEmpty
+        Percentage       = $FilteredData[12 - $ArrayPatchInt].Split(":")[1]
+        Capacity         = $FilteredData[13 - $ArrayPatchInt].Split(":")[1]
+        Technology       = $FilteredData[14 - $ArrayPatchInt].Split(":")[1]
     }
 
     # Return object
