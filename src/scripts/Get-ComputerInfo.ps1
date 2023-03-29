@@ -50,7 +50,7 @@ function Get-ComputerInfo {
     $DistName = ([regex]::Match($OSData[0], $regex)).Value
     $DistVersion = ([regex]::Match($OSData[1], $regex)).Value
 
-    return $Object = [PSCustomObject][ordered]@{
+    $Object = [PSCustomObject][ordered]@{
         BiosDate = Get-Content /sys/class/dmi/id/bios_date
         BiosVendor = Get-Content /sys/class/dmi/id/bios_vendor
         BiosVerson = Get-Content /sys/class/dmi/id/bios_version
@@ -70,4 +70,8 @@ function Get-ComputerInfo {
         OS = uname -o
         RAM = $RAM
     }
+
+    # Display results to user
+    return $Object
+
 }
