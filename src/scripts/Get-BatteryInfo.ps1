@@ -23,6 +23,10 @@ function Get-BatteryInfo {
 
     # Run upower, filter data
     $Battery = upower -e | Where-Object { $_ -match "BAT[0-9]" }
+    if ( -not $Battery) {
+        Write-Error '"upower -e" did not find a battery to gather data from. Must match "BAT[0-9].' -ErrorAction Stop
+    } 
+    
     $regex = '(?i)\b(model|rechargeable|state|warning-level|energy(-full(-design)?|-rate)?|voltage|charge-cycles|time to empty|percentage|capacity|technology)\b'
     $FilteredData = upower -i $Battery | Select-String $regex -Raw
 

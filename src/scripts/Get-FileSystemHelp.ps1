@@ -107,7 +107,7 @@ function Get-FileSystemHelp {
         }
     }
 
-    if (($All) -or ( -not $Name)) {
+    if ($All -or (-not $Name)) {
         return $Script:directorysExplained
     }
     elseif ($Name -and $Full) {
@@ -120,5 +120,5 @@ function Get-FileSystemHelp {
         return $return
     }
     # The last line of code initilizes the functions param section and generates the script-scoped variables
-    Get-FileSystemHelp -All | out-null
 }
+Get-FileSystemHelp -Name bin | Out-Null
