@@ -18,7 +18,37 @@ function Get-ComputerInfo {
     $script:OSData = (Get-Content /etc/os-release) | Select-String -Pattern '(?<=NAME=|VERSION=|PRETTY_NAME=|HOME_URL=|SUPPORT_END=)[^,\n]+' -Raw
     
     # DisplayData
-    $DisplayData = (glxinfo -B | Select-String 'Device: ' -Raw).Split(": ")[1]
+    $DisplayData = (lspci | grep -i vga) -split ":" | Select-Object -Last 1
+    if ($DisplayData -like " *") {
+        $DisplayData = $DisplayData.TrimStart(" ")
+    }
+
+    # Ram
+    $RAM = (lsmem | Select-String 'Total online memory:' -Raw ).Split(':    ')[1]
+    if ($RAM -like "* *") {
+        $RAM = $RAM.Replace(" ","")
+    }
+
+    # CPU Regex
+    $ThreadsPerCore = $CPUData[1].Substring($CPUData[1].Length - 2)
+    if ($ThreadsPerCore -like "* *") {
+        $ThreadsPerCore = $ThreadsPerCore.Trim(" ")
+    }
+
+    $CorePerSocket = $CPUData[2].Substring($CPUData[2].Length - 2)
+    if ($CorePerSocket -like "* *") {
+        $CorePerSocket = $CorePerSocket.Trim(" ")
+    }
+
+    $Sockets = $CPUData[3].Substring($CPUData[3].Length - 2)
+    if ($Sockets -like "* *") {
+        $Sockets = $Sockets.Trim(" ")
+    }
+
+    # Dist Name & version
+    $regex = '"([^"]*)"'
+    $DistName = ([regex]::Match($OSData[0], $regex)).Value
+    $DistVersion = ([regex]::Match($OSData[1], $regex)).Value
 
     return $Object = [PSCustomObject][ordered]@{
         BiosDate = Get-Content /sys/class/dmi/id/bios_date
@@ -26,18 +56,18 @@ function Get-ComputerInfo {
         BiosVerson = Get-Content /sys/class/dmi/id/bios_version
         CPU = $CPUData[0].Replace("  ","").Split(":")[1]
         CPUArchitecture = uname -p
-        ThreadsPerCore = $CPUData[1].Replace("  ","").Split(":")[1]
-        CorePerSocket = $CPUData[2].Replace("  ","").Split(":")[1]
-        Sockets = $CPUData[3].Replace(" ","").Split(":")[1]
-        DistName = $OSData[0].TrimStart("NAME=").Trim('"')
+        ThreadsPerCore = $ThreadsPerCore
+        CorePerSocket = $CorePerSocket
+        Sockets = $Sockets
+        DistName = $DistName.Replace('"','')
         DistSupportURL = ($OSData | Where-Object {$_ -like "HOME_URL=*"}).TrimStart("HOME_URL=").Trim('"')
         DiskSize = (Get-PSDrive | Select-Object  @{L="DiskSize";E={ ($_.Free + $_.Used) / 1GB }} | Where-Object {$_.DiskSize -gt 0}).DiskSize
         DiskFree = (Get-PSDrive | Select-Object  @{L="DiskFree";E={ ($_.Free) / 1GB }} | Where-Object {$_.DiskFree -gt 0}).DiskFree
         DiskUsed = (Get-PSDrive | Select-Object  @{L="DiskUsed";E={ ($_.Used) / 1GB }} | Where-Object {$_.DiskUsed -gt 0}).DiskUsed
         GPU = $DisplayData
-        DistVersion = $OSData[1].TrimStart("VERSION=").Trim('"')
+        DistVersion = $DistVersion.Replace('"','')
         KernelRelease = uname -r
         OS = uname -o
-        RAM = (lsmem | Select-String 'Total online memory:' -Raw ).Split(':    ')[1]
+        RAM = $RAM
     }
 }

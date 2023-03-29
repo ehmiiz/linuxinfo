@@ -38,3 +38,11 @@ Import-Module linuxinfo -Force -Verbose
 - Get-NetworkInfo (gets network adapter info)
 - Get-PeripheralInfo (gets usb, bluetooth devices, cameras, microphones)
 - Get-OSInfo (Gets install date, os version, `cat /etc/os-release`)
+
+
+## Testing
+
+The module is tested on the following linux dists:
+
+- Fedora (RHEL based)
+- Ubuntu (Debian based)
