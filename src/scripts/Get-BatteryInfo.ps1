@@ -15,6 +15,11 @@ function Get-BatteryInfo {
     [CmdletBinding()]
     param()
 
+    # Check if Linux
+    if (-not $IsLinux) {
+        Write-Error 'This function is only supported on Linux systems.' -ErrorAction Stop
+    }
+
     # Verifies required binary
     $ValidateLinuxBinary = (Get-Command upower)
     if ([String]::IsNullOrEmpty($ValidateLinuxBinary) ) {

@@ -14,6 +14,12 @@ function Get-ComputerInfo {
     [CmdletBinding()]
     param (
     )
+
+    # Check if Linux
+    if (-not $IsLinux) {
+        Write-Error 'This function is only supported on Linux systems.' -ErrorAction Stop
+    }
+
     $script:CPUData = lscpu | awk '/^Model name:/ || /^Socket\(s\):/ || /^Core\(s\) per socket:/ || /^Thread\(s\) per core:/ {print $0}'
     $script:OSData = (Get-Content /etc/os-release) | Select-String -Pattern '(?<=NAME=|VERSION=|PRETTY_NAME=|HOME_URL=|SUPPORT_END=)[^,\n]+' -Raw
     
@@ -48,7 +54,8 @@ function Get-ComputerInfo {
     # Dist Name & version
     $regex = '"([^"]*)"'
     $DistName = ([regex]::Match($OSData[0], $regex)).Value
-    $DistVersion = ([regex]::Match($OSData[1], $regex)).Value
+    $DistNameData = $script:OSData | Where-Object {$_ -like "VERSION=*"}
+    $DistVersion = ([regex]::Match($DistNameData, $regex)).Value
 
     # Fix disk display:
     $DiskSizeNice = (Get-PSDrive | Select-Object  @{L="DiskSize";E={ ($_.Free + $_.Used) / 1GB }} | Where-Object {$_.DiskSize -gt 0}).DiskSize | ForEach-Object {

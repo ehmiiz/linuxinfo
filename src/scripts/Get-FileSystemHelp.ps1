@@ -98,6 +98,11 @@ function Get-FileSystemHelp {
         
     )
 
+    # Check if Linux
+    if (-not $IsLinux) {
+        Write-Error 'This function is only supported on Linux systems.' -ErrorAction Stop
+    }
+
     if ($go) {
         if ($IsLinux) {
             Set-Location /$name

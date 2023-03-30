@@ -29,6 +29,7 @@ Import-Module linuxinfo -Force -Verbose
 - Get-BatteryInfo (`upower` parser)
 - Get-SystemUptime (`uptime` parser) (Get-Uptime exists in Linux, so this function is a bit redundant but was fun to write.)
 - Get-ComputerInfo
+- Get-OSInfo (Gets install date, os version, `cat /etc/os-release`)
 
 
 ## Planned functions:
@@ -37,7 +38,6 @@ Import-Module linuxinfo -Force -Verbose
 - Get-DisplayInfo (`lspci` parser)
 - Get-NetworkInfo (gets network adapter info)
 - Get-PeripheralInfo (gets usb, bluetooth devices, cameras, microphones)
-- Get-OSInfo (Gets install date, os version, `cat /etc/os-release`)
 
 
 ## Testing
