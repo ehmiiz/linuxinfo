@@ -6,16 +6,19 @@ Get valuable information on a linux system using PowerShell!
   <img src="linuxinfoico.png" />
 </p>
 
-## Install from GitHub using git
+## Install locally using the build script.
 
 
 ```powershell
-Set-Location $env:PSModulePath.Split(":")[0]
-git clone https://github.com/ehmiiz/linuxinfo.git
-New-Item -ItemType Directory -Name 0.0.1 -Path ./linuxinfo/
-Move-Item ./linuxinfo/src/* -Destination ./linuxinfo/0.0.1/
-Import-Module linuxinfo -Force -Verbose
+./build.ps1
 ```
+
+### To reinstall the module (if you've done local edits)
+
+```powershell
+./build.ps1 -Force
+```
+
 ## Install from PowerShellGallery (not published yet)
 
 ```powershell
