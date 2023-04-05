@@ -95,9 +95,9 @@ function Get-ComputerInfo {
         BiosVerson = Get-Content /sys/class/dmi/id/bios_version
         CPU = $CPUData[0].Replace("  ","").Split(":")[1]
         CPUArchitecture = uname -p
-        ThreadsPerCore = $ThreadsPerCore
-        CorePerSocket = $CorePerSocket
-        Sockets = $Sockets
+        CPUThreads = ([int]$ThreadsPerCore * [int]$CorePerSocket)
+        CPUCores = ($CorePerSocket * $Sockets)
+        CPUSockets = $Sockets
         DistName = $DistName.Replace('"','')
         DistSupportURL = ($OSData | Where-Object {$_ -like "HOME_URL=*"}).TrimStart("HOME_URL=").Trim('"')
         DiskSizeGb = $DiskSizeNice

@@ -25,6 +25,6 @@ function Get-SystemUptime {
         return $Data
     }
     catch {
-        throw 'This function requires the binary "uptime"'
+        throw 'This function requires the binary "uptime".'
     }
 }
