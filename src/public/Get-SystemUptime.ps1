@@ -13,18 +13,13 @@ function Get-SystemUptime {
     [CmdletBinding()]
     param()
 
-    try {
-        $VerifyUptime = Get-Command uptime -ErrorAction Stop
-        if ( -not [string]::IsNullOrEmpty($VerifyUptime)) {
-            $Data = [PSCustomObject]@{
-                SystemBootTime = ($SystemBTime = uptime -s)
-                SystemUptime   = (New-TimeSpan -Start $SystemBTime -End (Get-Date) )
-                FriendlyView   = uptime -p
-            }
-        }    
-        return $Data
-    }
-    catch {
-        throw 'This function requires the binary "uptime".'
-    }
+    # Verifies required binary
+    Resolve-BinDep -Bins "uptime"
+
+    $Data = [PSCustomObject]@{
+        SystemBootTime = ($SystemBTime = uptime -s)
+        SystemUptime   = (New-TimeSpan -Start $SystemBTime -End (Get-Date) )
+        FriendlyView   = uptime -p
+    }      
+    $Data
 }

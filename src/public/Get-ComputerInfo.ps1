@@ -15,10 +15,10 @@ function Get-ComputerInfo {
     param (
     )
 
-    # Check if Linux
-    if (-not $IsLinux) {
-        Write-Error 'This function is only supported on Linux systems.' -ErrorAction Stop
-    }
+    # Verifies required binary
+    Resolve-BinDep -Bins "lscpu", "awk", "lspci", "grep", "lsmem", "uname"
+
+    
 
     $script:CPUData = lscpu | awk '/^Model name:/ || /^Socket\(s\):/ || /^Core\(s\) per socket:/ || /^Thread\(s\) per core:/ {print $0}'
     $script:OSData = (Get-Content /etc/os-release) | Select-String -Pattern '(?<=NAME=|VERSION=|PRETTY_NAME=|HOME_URL=|SUPPORT_END=)[^,\n]+' -Raw

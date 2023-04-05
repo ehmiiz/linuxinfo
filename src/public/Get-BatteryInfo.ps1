@@ -15,16 +15,8 @@ function Get-BatteryInfo {
     [CmdletBinding()]
     param()
 
-    # Check if Linux
-    if (-not $IsLinux) {
-        Write-Error 'This function is only supported on Linux systems.' -ErrorAction Stop
-    }
-
     # Verifies required binary
-    $ValidateLinuxBinary = (Get-Command upower)
-    if ([String]::IsNullOrEmpty($ValidateLinuxBinary) ) {
-        throw 'Lacking required binary "upower"'
-    }
+    Resolve-BinDep -Bins "upower"
 
     # Run upower, filter data
     $Battery = upower -e | Where-Object { $_ -match "BAT[0-9]" }

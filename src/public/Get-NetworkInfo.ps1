@@ -4,6 +4,9 @@ function Get-NetworkInfo {
         [Switch]$IncludePublicIP
     )
 
+    # Verifies required binary
+    Resolve-BinDep -Bins "hostname", "awk", "ip", "grep", "cat"
+    
 
     # Local IP
     $localIP = (hostname -I | awk '{print $1}').Trim()

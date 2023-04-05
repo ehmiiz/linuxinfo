@@ -15,10 +15,9 @@ function Get-OSInfo {
     [CmdletBinding()]
     param()
 
-    # Check if Linux
-    if (-not $IsLinux) {
-        Write-Error 'This function is only supported on Linux systems.' -ErrorAction Stop
-    }
+    # Verifies required binary
+    Resolve-BinDep -Bins "stat", "awk", "uname"
+
 
     # Gather data
     $script:OSData = (Get-Content /etc/os-release) | Select-String -Pattern '(?<=NAME=|VERSION=|PRETTY_NAME=|HOME_URL=|SUPPORT_END=)[^,\n]+' -Raw

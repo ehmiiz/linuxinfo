@@ -1,15 +1,14 @@
 function Get-DisplayInfo {
     [CmdletBinding()]
     param()
+
+    # Verifies required binary
+    Resolve-BinDep -Bins "xrandr", "lspci", "grep"
     
-    if (Get-Command xrandr) {
-        $AspectRatio = ((xrandr | Select-Object -First 1).split(",")[1]).Replace(" current ",'')
-        $RefreshRate = (xrandr --prop | Select-String -SimpleMatch '*+' -Raw).Split('     ')[1].Replace('*+','')
-        $Monitors = (xrandr --listmonitors)[0].ToCharArray() | Select-Object -Last 1
-    }
-    else {
-        Write-Error 'This function uses `xrandr` cli to gather its data. Please install it using your preferred package manager and try again.' -ErrorAction Stop
-    }
+
+    $AspectRatio = ((xrandr | Select-Object -First 1).split(",")[1]).Replace(" current ",'')
+    $RefreshRate = (xrandr --prop | Select-String -SimpleMatch '*+' -Raw).Split('     ')[1].Replace('*+','')
+    $Monitors = (xrandr --listmonitors)[0].ToCharArray() | Select-Object -Last 1
 
     if (Get-Command lspci) {
         # DisplayData
