@@ -90,9 +90,9 @@ function Get-ComputerInfo {
 
 
     $Object = [PSCustomObject][ordered]@{
-        BiosDate = Get-Content /sys/class/dmi/id/bios_date
-        BiosVendor = Get-Content /sys/class/dmi/id/bios_vendor
-        BiosVerson = Get-Content /sys/class/dmi/id/bios_version
+        BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
+        BiosVendor = Get-Content "/sys/class/dmi/id/bios_vendor"
+        BiosVerson = Get-Content "/sys/class/dmi/id/bios_version"
         CPU = $CPUData[0].Replace("  ","").Split(":")[1]
         CPUArchitecture = uname -p
         CPUThreads = ([int]$ThreadsPerCore * [int]$CorePerSocket)

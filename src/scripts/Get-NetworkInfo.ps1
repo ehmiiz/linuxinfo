@@ -1,35 +1,40 @@
 function Get-NetworkInfo {
     [CmdletBinding()]
-    param()
+    param(
+        [Switch]$IncludePublicIP
+    )
+
 
     # Local IP
     $localIP = (hostname -I | awk '{print $1}').Trim()
-    
+
+    if ( -not $localIP) {
+        Write-Error "No local IP was found. Check your network cable / wifi settings." -ErrorAction Stop
+    }
+
     # netmask
-    $subnetMask = (ifconfig $(ip route | grep default | awk '{print $5}') | grep netmask | awk '{print $4}').Trim()
+    $subnetMask = ip addr show $(ip route | grep default | awk '{print $5}') | awk '/inet / {print $2}' | cut -d '/' -f 2
 
     # def gateway
     $defaultGateway = (ip route show default | awk '{print $3}').Trim()
     
-    # pub ip
-    $publicIP = (curl ifconfig.me 2>$null).Trim()
-    
     # local dns servers
     $dnsServers = (grep nameserver /etc/resolv.conf | awk '{print $2}').Trim()
 
-    $MacAddress = 'tbd'
-    # tbd
+    $macAddress = ip add | grep link/ether | awk '{print $2}'
 
-    $ConnectedNetworkName = 'tbd'
-    # tbd
-
-    [PSCustomObject]@{
+    $Obj = [PSCustomObject]@{
         "LocalIP" = $localIP
-        "SubnetMask" = $subnetMask
         "DefaultGateway" = $defaultGateway
-        "PublicIP" = $publicIP
         "DNSServer(s)" = $dnsServers -split '\r\n'
-        "MAC Address" = $MacAddress
-        "ConnectedNetworkName" = $ConnectedNetworkName
+        "MAC Address" = $macAddress
+        "SubnetMask" = $subnetMask
     }
+
+    if ($IncludePublicIP) {
+        $PublicIP = Invoke-RestMethod -Uri "https://checkip.amazonaws.com"
+        $Obj | Add-Member -MemberType NoteProperty -Name 'PublicIP' -Value $PublicIP 
+    }
+
+    return $Obj
 }
