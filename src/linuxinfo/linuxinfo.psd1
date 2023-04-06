@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'Linux','linux','system','information','client info','unix'
+        Tags = 'Linux','linux','system','information','systeminfo','unix'
 
         # A URL to the license for this module.
         LicenseUri = 'https://raw.githubusercontent.com/ehmiiz/linuxinfo/main/LICENSE'
