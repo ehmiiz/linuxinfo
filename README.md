@@ -35,12 +35,12 @@ Import-Module linuxinfo -Force -Verbose
 - Get-OSInfo (Gets install date, os version, `cat /etc/os-release`)
 - Get-DisplayInfo (`lspci` parser)
 - Get-NetworkInfo (gets network adapter info)
+- Get-USBInfo (gets usb devices)
 
 
 ## Planned functions:
 
-- Get-PeripheralInfo (gets usb, bluetooth devices, cameras, microphones)
-
+- Currently none
 
 ## Testing
 
