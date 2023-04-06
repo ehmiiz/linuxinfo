@@ -27,7 +27,7 @@ Author = 'Emil Larsson'
 CompanyName = 'ehmiiz.tech'
 
 # Copyright statement for this module
-Copyright = 'MIT'
+Copyright = '(c) Emil Larsson'
 
 # Description of the functionality provided by this module
 Description = 'Get useful linux system information using PowerShell.'
@@ -101,10 +101,10 @@ PrivateData = @{
         LicenseUri = 'https://raw.githubusercontent.com/ehmiiz/linuxinfo/main/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/ehmiiz/linuxinfo/'
 
         # A URL to an icon representing this module.
-        # IconUri = ''
+        IconUri = 'https://raw.githubusercontent.com/ehmiiz/linuxinfo/main/linuxinfoico.png'
 
         # ReleaseNotes of this module
         # ReleaseNotes = ''
