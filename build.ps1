@@ -19,10 +19,18 @@ function Install-LinuxInfo {
     try {
         $GoBack = $pwd
         Set-Location $env:PSModulePath.Split(":")[0]
+        if (Test-Path ./linuxinfo) {
+            Remove-Item ./linuxinfo -Recurse -Force
+        }
+
         Write-Verbose "Cloning linuxinfo.." -Verbose
         $null = git clone https://github.com/ehmiiz/linuxinfo.git
-        $null = New-Item -ItemType Directory -Name 0.0.1 -Path ./linuxinfo/
-        Move-Item ./linuxinfo/src/* -Destination ./linuxinfo/0.0.1/
+
+        # Figure out module version
+        [string]$V = (Test-ModuleManifest -Path linuxinfo/src/linuxinfo/linuxinfo.psd1).Version
+
+        $null = New-Item -ItemType Directory -Name $V -Path ./linuxinfo/
+        Move-Item ./linuxinfo/src/linuxinfo/* -Destination ./linuxinfo/$V/
         Import-Module linuxinfo -Force
         Set-Location $GoBack
         Write-Verbose "Installed and Imported." -Verbose
