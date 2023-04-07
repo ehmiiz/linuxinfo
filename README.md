@@ -1,10 +1,16 @@
 # linuxinfo
 
-Get valuable information on a linux system using PowerShell!
+Get useful linux system information using PowerShell.
 
 <p align="center">
   <img src="linuxinfoico.png" />
 </p>
+
+## Install from PowerShellGallery
+
+```powershell
+Install-Module linuxinfo -Verbose
+```
 
 ## Install locally using the build script.
 
@@ -19,13 +25,6 @@ Get valuable information on a linux system using PowerShell!
 ./build.ps1 -Force
 ```
 
-## Install from PowerShellGallery (not published yet)
-
-```powershell
-Install-Module linuxinfo -Verbose
-Import-Module linuxinfo -Force -Verbose
-```
-
 ## Completed functions:
 
 - Get-FileSystemHelp (help data on `/`, json format with navigation)
@@ -37,10 +36,19 @@ Import-Module linuxinfo -Force -Verbose
 - Get-NetworkInfo (gets network adapter info)
 - Get-USBInfo (gets usb devices)
 
-
 ## Planned functions:
 
-- Currently none
+- Get-UserInfo (gets local users and sudo users)
+
+## Planned features:
+
+- PSSession remoting
+- Get-DisplayInfo to support more advanced display options
+- Updatable and online help
+
+## Contributions
+
+Feel free to open issues, PRs or anything else to contribute to the module.
 
 ## Testing
 
