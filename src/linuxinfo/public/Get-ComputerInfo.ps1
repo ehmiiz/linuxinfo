@@ -19,7 +19,7 @@ function Get-ComputerInfo {
     Resolve-BinDep -Bins "lscpu", "awk", "lspci", "grep", "lsmem", "uname"
 
 
-    $script:CPUData = lscpu | awk '/^Model name:/ || /^Socket\(s\):/ || /^Core\(s\) per socket:/ || /^Thread\(s\) per core:/ {print $0}'
+    $script:CPUData = lscpu | awk '/^Model name:/ || /^Socket\(s\):/ || /^Core\(s\) per socket:/ || /^Thread\(s\) per core:/ {print $0}' | Sort-Object
     $script:OSData = (Get-Content /etc/os-release) | Select-String -Pattern '(?<=NAME=|VERSION=|PRETTY_NAME=|HOME_URL=|SUPPORT_END=)[^,\n]+' -Raw
     
     # DisplayData
@@ -31,33 +31,56 @@ function Get-ComputerInfo {
     # Ram
     $RAM = (lsmem | Select-String 'Total online memory:' -Raw ).Split(':    ')[1]
     if ($RAM -like "* *") {
-        $RAM = $RAM.Replace(" ","")
+        $RAM = $RAM.Replace(" ", "")
     }
 
     # CPU Regex
-    $ThreadsPerCore = $CPUData[1].Substring($CPUData[1].Length - 2)
-    if ($ThreadsPerCore -like "* *") {
-        $ThreadsPerCore = $ThreadsPerCore.Trim(" ")
-    }
 
-    $CorePerSocket = $CPUData[2].Substring($CPUData[2].Length - 2)
+    $CorePerSocket = $CPUData[0].Substring($CPUData[0].Length - 2)
     if ($CorePerSocket -like "* *") {
         $CorePerSocket = $CorePerSocket.Trim(" ")
     }
 
-    $Sockets = $CPUData[3].Substring($CPUData[3].Length - 2)
+    $Sockets = $CPUData[2].Substring($CPUData[2].Length - 2)
     if ($Sockets -like "* *") {
         $Sockets = $Sockets.Trim(" ")
     }
+    
+    $ThreadsPerCore = $CPUData[3].Substring($CPUData[3].Length - 2)
+    if ($ThreadsPerCore -like "* *") {
+        $ThreadsPerCore = $ThreadsPerCore.Trim(" ")
+    }
+    
+    # Make sure uname does not fail in the return table
+    $CPUArc = uname -p
+    if ( -not $CPUArc) {
+        $CPUArc = "Unknown"
+    }
+
+    # Make CPU Thread count more robust, if parser failed, output unknown instead of error
+    try {
+        $CPUThreads = ([int]$ThreadsPerCore * [int]$CorePerSocket)
+    }
+    catch {
+        $CPUThreads = 'Unknown'
+    }
+
+    try {
+        $CPUCores = ([int]$CorePerSocket * [int]$Sockets)
+    }
+    catch {
+        $CPUCores = 'Unknown'
+    }
+    
 
     # Dist Name & version
     $regex = '"([^"]*)"'
     $DistName = ([regex]::Match($OSData[0], $regex)).Value
-    $DistNameData = $script:OSData | Where-Object {$_ -like "VERSION=*"}
+    $DistNameData = $script:OSData | Where-Object { $_ -like "VERSION=*" }
     $DistVersion = ([regex]::Match($DistNameData, $regex)).Value
 
     # Fix disk display:
-    $DiskSizeNice = (Get-PSDrive | Select-Object  @{L="DiskSize";E={ ($_.Free + $_.Used) / 1GB }} | Where-Object {$_.DiskSize -gt 0}).DiskSize | ForEach-Object {
+    $DiskSizeNice = (Get-PSDrive | Select-Object  @{L = "DiskSize"; E = { ($_.Free + $_.Used) / 1GB } } | Where-Object { $_.DiskSize -gt 0 }).DiskSize | ForEach-Object {
         if ($_ -ge 1) {
             [int]$_
         }
@@ -67,7 +90,7 @@ function Get-ComputerInfo {
         $DiskSizeNice = $DiskSizeNice[0]
     }
 
-    $DiskFreeNice = (Get-PSDrive | Select-Object  @{L="DiskFree";E={ ($_.Free) / 1GB }} | Where-Object {$_.DiskFree -gt 0}).DiskFree | ForEach-Object {
+    $DiskFreeNice = (Get-PSDrive | Select-Object  @{L = "DiskFree"; E = { ($_.Free) / 1GB } } | Where-Object { $_.DiskFree -gt 0 }).DiskFree | ForEach-Object {
         if ($_ -ge 1) {
             [int]$_
         }
@@ -77,7 +100,7 @@ function Get-ComputerInfo {
         $DiskFreeNice = $DiskFreeNice[0]
     }
 
-    $DiskUsedNice = (Get-PSDrive | Select-Object  @{L="DiskUsed";E={ ($_.Used) / 1GB }} | Where-Object {$_.DiskUsed -gt 0}).DiskUsed | ForEach-Object {
+    $DiskUsedNice = (Get-PSDrive | Select-Object  @{L = "DiskUsed"; E = { ($_.Used) / 1GB } } | Where-Object { $_.DiskUsed -gt 0 }).DiskUsed | ForEach-Object {
         if ($_ -ge 1) {
             [int]$_
         }
@@ -88,28 +111,28 @@ function Get-ComputerInfo {
     }
 
 
-    $Object = [PSCustomObject][ordered]@{
-        BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
-        BiosVendor = Get-Content "/sys/class/dmi/id/bios_vendor"
-        BiosVerson = Get-Content "/sys/class/dmi/id/bios_version"
-        CPU = $CPUData[0].Replace("  ","").Split(":")[1]
-        CPUArchitecture = uname -p
-        CPUThreads = ([int]$ThreadsPerCore * [int]$CorePerSocket)
-        CPUCores = ($CorePerSocket * $Sockets)
-        CPUSockets = $Sockets
-        DistName = $DistName.Replace('"','')
-        DistSupportURL = ($OSData | Where-Object {$_ -like "HOME_URL=*"}).TrimStart("HOME_URL=").Trim('"')
-        DiskSizeGb = $DiskSizeNice
-        DiskFreeGb = $DiskFreeNice
-        DiskUsedGb = $DiskUsedNice
-        GPU = $DisplayData
-        DistVersion = $DistVersion.Replace('"','')
-        KernelRelease = uname -r
-        OS = uname -o
-        RAM = $RAM
+    $Return = [PSCustomObject][ordered]@{
+        BiosDate        = Get-Content "/sys/class/dmi/id/bios_date"
+        BiosVendor      = Get-Content "/sys/class/dmi/id/bios_vendor"
+        BiosVerson      = Get-Content "/sys/class/dmi/id/bios_version"
+        CPU             = $CPUData[0].Replace("  ", "").Split(":")[1]
+        CPUArchitecture = $CPUArc
+        CPUThreads      = $CPUThreads
+        CPUCores        = $CPUCores
+        CPUSockets      = $Sockets
+        DistName        = $DistName.Replace('"', '')
+        DistSupportURL  = ($OSData | Where-Object { $_ -like "HOME_URL=*" }).TrimStart("HOME_URL=").Trim('"')
+        DiskSizeGb      = $DiskSizeNice
+        DiskFreeGb      = $DiskFreeNice
+        DiskUsedGb      = $DiskUsedNice
+        GPU             = $DisplayData
+        DistVersion     = $DistVersion.Replace('"', '')
+        KernelRelease   = uname -r
+        OS              = uname -o
+        RAM             = $RAM
     }
 
     # Display results to user
-    return $Object
+    $Return
 
 }
