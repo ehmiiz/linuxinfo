@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module ../../src/linuxinfo/linuxinfo.psd1 -Function Get-ComputerInfo -Verbose
+    ../../build.ps1 -Force
 }
 
 Describe "Get-ComputerInfo" {
