@@ -16,9 +16,11 @@ function Get-SystemUptime {
     # Verifies required binary
     Resolve-BinDep -Bins "uptime"
 
+    [DateTime]$UpTime = uptime -s
+
     $Data = [PSCustomObject]@{
-        SystemBootTime = ($SystemBTime = uptime -s)
-        SystemUptime   = (New-TimeSpan -Start $SystemBTime -End (Get-Date) )
+        SystemBootTime = $UpTime
+        SystemUptime   = (New-TimeSpan -Start $UpTime -End (Get-Date) )
         FriendlyView   = uptime -p
     }      
     $Data
