@@ -7,7 +7,7 @@ function Get-DisplayInfo {
     
 
     $AspectRatio = ((xrandr | Select-Object -First 1).split(",")[1]).Replace(" current ",'')
-    $RefreshRate = (xrandr --prop | Select-String -SimpleMatch '*+' -Raw).Split('     ')[1].Replace('*+','')
+    $RefreshRate = ((xrandr --prop | Select-String -SimpleMatch '*+ ' -Raw).Split(" ") | Where-Object {$_ -like "*+"}).TrimEnd("*+")
     $Monitors = (xrandr --listmonitors)[0].ToCharArray() | Select-Object -Last 1
 
     if (Get-Command lspci) {
