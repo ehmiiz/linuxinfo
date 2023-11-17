@@ -28,7 +28,14 @@ function Get-OSInfo {
     $DistVersion = ([regex]::Match($DistNameData, $regex)).Value
     
     if (Get-Command stat) {
-        [DateTime]$InstallDate = [DateTime](stat / | Where-Object {$_ -like " *Birth*"}).TrimStart(" Birth:")
+        $InstallDate = (stat / | Where-Object {$_ -like " *Birth*"}).TrimStart(" Birth:")
+        if ($InstallDate -match '[0-9][0-9][0-9]') {
+            $InstallDate = [DateTime]$InstallDate
+        }
+        else {
+            $InstallDate = "N/A"
+        }
+        
     }
     else {
         $InstallDate = "Unknown"

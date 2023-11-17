@@ -1,2 +1,5 @@
 $ModulePath = "$PSScriptRoot/src/linuxinfo"
-Publish-Module -Path $ModulePath -NuGetApiKey $Env:APIKEY
+
+# Publish-Module -Path  -NuGetApiKey 
+
+Publish-PSResource -Path $ModulePath -ApiKey $Env:APIKEY
