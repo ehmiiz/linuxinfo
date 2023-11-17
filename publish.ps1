@@ -4,7 +4,7 @@ $ModulePath = "$PSScriptRoot/src/linuxinfo"
 
 if (-not (Get-Command Publish-PSResource -ErrorAction SilentlyContinue) ) {
     Set-PSRepository PSGallery -InstallationPolicy Trusted
-    Install-Module PSResourceGet -Force
+    Install-Module Microsoft.PowerShell.PSResourceGet -Force
 }
 
 Publish-PSResource -Path $ModulePath -ApiKey $Env:APIKEY
