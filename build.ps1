@@ -31,7 +31,7 @@ function Install-LinuxInfo {
 
         $null = New-Item -ItemType Directory -Name $V -Path ./linuxinfo/
         Move-Item ./linuxinfo/src/linuxinfo/* -Destination ./linuxinfo/$V/
-        Import-Module linuxinfo -Force
+        Import-Module linuxinfo -Force -ErrorAction SilentlyContinue
         Set-Location $GoBack
         Write-Verbose "Installed and Imported." -Verbose
         Get-Module linuxinfo
