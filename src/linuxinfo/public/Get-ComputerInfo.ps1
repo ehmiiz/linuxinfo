@@ -124,8 +124,15 @@ function Get-ComputerInfo {
         $BiosVersion = Get-Content "/sys/class/dmi/id/bios_version"
     }
 
+    if ($CPUData[0].Replace("  ", "").Split(":")[1] -like " *") {
+        $CPUData = $CPUData[0].Replace("  ", "").Split(":")[1].TrimStart(" ")
+    }
+    else {
+        $CPUData = $CPUData[0].Replace("  ", "").Split(":")[1]
+    }
+
     $Return = [PSCustomObject][ordered]@{
-        BiosDate         = $BiosDate
+        BiosDate         = [DateTime]$BiosDate
         BiosVendor       = $BiosVendor
         BiosVersion      = $BiosVersion
         CPU              = $CPUData[0].Replace("  ", "").Split(":")[1]
