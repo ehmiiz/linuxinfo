@@ -80,7 +80,7 @@ function Get-ComputerInfo {
     $DistVersion = ([regex]::Match($DistNameData, $regex)).Value
 
     # Fix disk display:
-    $DiskSizeNice = (Get-PSDrive | Select-Object  @{L = "DiskSize"; E = { ($_.Free + $_.Used) / 1GB } } | Where-Object { $_.DiskSize -gt 0 }).DiskSize | ForEach-Object {
+    $DiskSizeNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskSize"; E = { ($_.Free + $_.Used) / 1GB } } | Where-Object { $_.DiskSize -gt 0 }).DiskSize | ForEach-Object {
         if ($_ -ge 1) {
             [int]$_
         }
@@ -90,7 +90,7 @@ function Get-ComputerInfo {
         $DiskSizeNice = $DiskSizeNice[0]
     }
 
-    $DiskFreeNice = (Get-PSDrive | Select-Object  @{L = "DiskFree"; E = { ($_.Free) / 1GB } } | Where-Object { $_.DiskFree -gt 0 }).DiskFree | ForEach-Object {
+    $DiskFreeNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskFree"; E = { ($_.Free) / 1GB } } | Where-Object { $_.DiskFree -gt 0 }).DiskFree | ForEach-Object {
         if ($_ -ge 1) {
             [int]$_
         }
@@ -100,7 +100,7 @@ function Get-ComputerInfo {
         $DiskFreeNice = $DiskFreeNice[0]
     }
 
-    $DiskUsedNice = (Get-PSDrive | Select-Object  @{L = "DiskUsed"; E = { ($_.Used) / 1GB } } | Where-Object { $_.DiskUsed -gt 0 }).DiskUsed | ForEach-Object {
+    $DiskUsedNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskUsed"; E = { ($_.Used) / 1GB } } | Where-Object { $_.DiskUsed -gt 0 }).DiskUsed | ForEach-Object {
         if ($_ -ge 1) {
             [int]$_
         }
@@ -112,7 +112,7 @@ function Get-ComputerInfo {
 
     $IsWSL = Get-Item Env:WSL_DISTRO_NAME -ErrorAction SilentlyContinue
     if ($IsWSL) {
-        $SB = {Get-ComputerInfo | Select-Object BiosVersion, BiosManufacturer, BiosReleaseDate}
+        $SB = { Get-ComputerInfo | Select-Object BiosVersion, BiosManufacturer, BiosReleaseDate }
         $PowerShellOutput = powershell.exe -c $SB
         $BiosDate = $PowerShellOutput.BiosReleaseDate
         $BiosVendor = $PowerShellOutput.BiosManufacturer
@@ -125,24 +125,24 @@ function Get-ComputerInfo {
     }
 
     $Return = [PSCustomObject][ordered]@{
-        BiosDate        = $BiosDate
-        BiosVendor      = $BiosVendor
+        BiosDate         = $BiosDate
+        BiosVendor       = $BiosVendor
         BiosVersion      = $BiosVersion
-        CPU             = $CPUData[0].Replace("  ", "").Split(":")[1]
-        CPUArchitecture = $CPUArc
-        CPUThreads      = $CPUThreads
-        CPUCores        = $CPUCores
-        CPUSockets      = $Sockets
-        DistName        = $DistName.Replace('"', '')
-        DistSupportURL  = ($OSData | Where-Object { $_ -like "HOME_URL=*" }).TrimStart("HOME_URL=").Trim('"')
-        DiskSizeGb      = $DiskSizeNice
-        DiskFreeGb      = $DiskFreeNice
-        DiskUsedGb      = $DiskUsedNice
-        GPU             = $DisplayData
-        DistVersion     = $DistVersion.Replace('"', '')
-        KernelRelease   = uname -r
-        OS              = uname -o
-        RAM             = $RAM
+        CPU              = $CPUData[0].Replace("  ", "").Split(":")[1]
+        CPUArchitecture  = $CPUArc
+        CPUThreads       = $CPUThreads
+        CPUCores         = $CPUCores
+        CPUSockets       = $Sockets
+        DistName         = $DistName.Replace('"', '')
+        DistSupportURL   = ($OSData | Where-Object { $_ -like "HOME_URL=*" }).TrimStart("HOME_URL=").Trim('"')
+        SystemDiskSizeGb = $DiskSizeNice
+        SystemDiskFreeGb = $DiskFreeNice
+        SystemDiskUsedGb = $DiskUsedNice
+        GPU              = $DisplayData
+        DistVersion      = $DistVersion.Replace('"', '')
+        KernelRelease    = uname -r
+        OS               = uname -o
+        RAM              = $RAM
     }
 
     # Display results to user
