@@ -135,7 +135,7 @@ function Get-ComputerInfo {
         BiosDate         = [DateTime]$BiosDate
         BiosVendor       = $BiosVendor
         BiosVersion      = $BiosVersion
-        CPU              = $CPUData[0].Replace("  ", "").Split(":")[1]
+        CPU              = $CPUData
         CPUArchitecture  = $CPUArc
         CPUThreads       = $CPUThreads
         CPUCores         = $CPUCores
