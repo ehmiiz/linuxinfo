@@ -117,6 +117,10 @@ function Get-ComputerInfo {
         $BiosDate = $PowerShellOutput.ReleaseDate
         $BiosVendor = $PowerShellOutput.Manufacturer
         $BiosVersion = $PowerShellOutput.BiosVersion
+        if (-not $DisplayData) {
+            $SB = { (Get-CimInstance Win32_DisplayConfiguration).DeviceName }
+            $DisplayData = powershell.exe -c $SB
+        }
     }
     else {
         $BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
