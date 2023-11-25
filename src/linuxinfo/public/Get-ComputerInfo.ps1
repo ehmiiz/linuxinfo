@@ -110,11 +110,24 @@ function Get-ComputerInfo {
         $DiskUsedNice = $DiskUsedNice[0]
     }
 
+    $IsWSL = Get-Item Env:WSL_DISTRO_NAME -ErrorAction SilentlyContinue
+    if ($IsWSL) {
+        $SB = {Get-ComputerInfo | Select-Object BiosVersion, BiosManufacturer, BiosReleaseDate}
+        $PowerShellOutput = powershell.exe -c $SB
+        $BiosDate = $PowerShellOutput.BiosReleaseDate
+        $BiosVendor = $PowerShellOutput.BiosManufacturer
+        $BiosVersion = $PowerShellOutput.BiosVersion
+    }
+    else {
+        $BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
+        $BiosVendor = Get-Content "/sys/class/dmi/id/bios_vendor"
+        $BiosVersion = Get-Content "/sys/class/dmi/id/bios_version"
+    }
 
     $Return = [PSCustomObject][ordered]@{
-        BiosDate        = Get-Content "/sys/class/dmi/id/bios_date"
-        BiosVendor      = Get-Content "/sys/class/dmi/id/bios_vendor"
-        BiosVerson      = Get-Content "/sys/class/dmi/id/bios_version"
+        BiosDate        = $BiosDate
+        BiosVendor      = $BiosVendor
+        BiosVersion      = $BiosVersion
         CPU             = $CPUData[0].Replace("  ", "").Split(":")[1]
         CPUArchitecture = $CPUArc
         CPUThreads      = $CPUThreads
