@@ -111,16 +111,31 @@ function Get-ComputerInfo {
     }
 
     $IsWSL = Get-Item Env:WSL_DISTRO_NAME -ErrorAction SilentlyContinue
+    
     if ($IsWSL) {
-        $SB = { Get-CimInstance Win32_BIOS | Select-Object @{l="BiosVersion";e={$_.BiosVersion | Select-Object -Last 1}}, Manufacturer, ReleaseDate }
+        $SB = { 
+            Get-CimInstance Win32_BIOS | Select-Object @{
+                l = "BiosVersion"; e = {
+                    $_.BiosVersion | Select-Object -Last 1
+                }
+            },
+            @{
+                l = "DisplayData"; e = {
+                    (Get-CimInstance Win32_DisplayConfiguration).DeviceName
+                }
+            },
+            Manufacturer, ReleaseDate
+        }
+
         $PowerShellOutput = powershell.exe -c $SB
+
+        if ( -not $DisplayData) {
+            $DisplayData = $PowerShellOutput.DisplayData
+        }
+        
         $BiosDate = $PowerShellOutput.ReleaseDate
         $BiosVendor = $PowerShellOutput.Manufacturer
         $BiosVersion = $PowerShellOutput.BiosVersion
-        if (-not $DisplayData) {
-            $SB = { (Get-CimInstance Win32_DisplayConfiguration).DeviceName }
-            $DisplayData = powershell.exe -c $SB
-        }
     }
     else {
         $BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
