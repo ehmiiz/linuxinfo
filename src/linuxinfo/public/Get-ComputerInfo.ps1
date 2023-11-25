@@ -112,10 +112,10 @@ function Get-ComputerInfo {
 
     $IsWSL = Get-Item Env:WSL_DISTRO_NAME -ErrorAction SilentlyContinue
     if ($IsWSL) {
-        $SB = { Get-ComputerInfo | Select-Object BiosVersion, BiosManufacturer, BiosReleaseDate }
+        $SB = { Get-CimInstance Win32_BIOS | Select-Object @{l="BiosVersion";e={$_.BiosVersion | Select-Object -Last 1}}, Manufacturer, ReleaseDate }
         $PowerShellOutput = powershell.exe -c $SB
-        $BiosDate = $PowerShellOutput.BiosReleaseDate
-        $BiosVendor = $PowerShellOutput.BiosManufacturer
+        $BiosDate = $PowerShellOutput.ReleaseDate
+        $BiosVendor = $PowerShellOutput.Manufacturer
         $BiosVersion = $PowerShellOutput.BiosVersion
     }
     else {
