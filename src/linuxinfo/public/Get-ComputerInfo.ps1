@@ -20,6 +20,7 @@ function Get-ComputerInfo {
 
 
     $script:CPUData = lscpu | awk '/^Model name:/ || /^Socket\(s\):/ || /^Core\(s\) per socket:/ || /^Thread\(s\) per core:/ {print $0}' | Sort-Object
+    
     $script:OSData = (Get-Content /etc/os-release) | Select-String -Pattern '(?<=NAME=|VERSION=|PRETTY_NAME=|HOME_URL=|SUPPORT_END=)[^,\n]+' -Raw
     
     # DisplayData
@@ -143,11 +144,11 @@ function Get-ComputerInfo {
         $BiosVersion = Get-Content "/sys/class/dmi/id/bios_version"
     }
 
-    if ($CPUData[0].Replace("  ", "").Split(":")[1] -like " *") {
-        $CPUData = $CPUData[0].Replace("  ", "").Split(":")[1].TrimStart(" ")
+    if ($CPUData[1].Replace("  ", "").Split(":")[1] -like " *") {
+        $CPUData = $CPUData[1].Replace("  ", "").Split(":")[1].TrimStart(" ")
     }
     else {
-        $CPUData = $CPUData[0].Replace("  ", "").Split(":")[1]
+        $CPUData = $CPUData[1].Replace("  ", "").Split(":")[1]
     }
 
     $Return = [PSCustomObject][ordered]@{
