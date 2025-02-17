@@ -142,36 +142,16 @@ function Get-ComputerInfo {
     $DistNameData = $script:OSData | Where-Object { $_ -like "VERSION=*" }
     $DistVersion = ([regex]::Match($DistNameData, $regex)).Value
 
+    # Debug disk values
+    $diskInfo = Get-PSDrive -Name "/"
+    Write-Verbose "Raw disk values:"
+    Write-Verbose ("Used bytes: {0}" -f $diskInfo.Used)
+    Write-Verbose ("Used GB raw: {0}" -f ($diskInfo.Used/1GB))
+
     # Fix disk display:
-    $DiskSizeNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskSize"; E = { ($_.Free + $_.Used) / 1GB } } | Where-Object { $_.DiskSize -gt 0 }).DiskSize | ForEach-Object {
-        if ($_ -ge 1) {
-            "{0}GB" -f [int]$_
-        }
-    }
-
-    if ($DiskSizeNice[0] -eq $DiskSizeNice[1]) {
-        $DiskSizeNice = $DiskSizeNice[0]
-    }
-
-    $DiskFreeNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskFree"; E = { ($_.Free) / 1GB } } | Where-Object { $_.DiskFree -gt 0 }).DiskFree | ForEach-Object {
-        if ($_ -ge 1) {
-            "{0}GB" -f [int]$_
-        }
-    }
-
-    if ($DiskFreeNice[0] -eq $DiskFreeNice[1]) {
-        $DiskFreeNice = $DiskFreeNice[0]
-    }
-
-    $DiskUsedNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskUsed"; E = { ($_.Used) / 1GB } } | Where-Object { $_.DiskUsed -gt 0 }).DiskUsed | ForEach-Object {
-        if ($_ -ge 1) {
-            "{0}GB" -f [int]$_
-        }
-    }
-
-    if ($DiskUsedNice[0] -eq $DiskUsedNice[1]) {
-        $DiskUsedNice = $DiskUsedNice[0]
-    }
+    $DiskSizeNice = "{0:N2}GB" -f (((Get-PSDrive -Name "/").Used + (Get-PSDrive -Name "/").Free) / 1GB)
+    $DiskFreeNice = "{0:N2}GB" -f ((Get-PSDrive -Name "/").Free / 1GB)
+    $DiskUsedNice = "{0:N2}GB" -f ((Get-PSDrive -Name "/").Used / 1GB)
 
     # Get BIOS information directly from DMI
     $BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
@@ -188,8 +168,8 @@ function Get-ComputerInfo {
     # Get system information using dmidecode
     $SystemInfo = @{
         Manufacturer = "Unknown"
-        ProductName = "Unknown"
-        Version = "Unknown"
+        ProductName  = "Unknown"
+        Version      = "Unknown"
         SerialNumber = "Unknown"
     }
 
@@ -216,28 +196,28 @@ function Get-ComputerInfo {
 
     # Modify the return object to include system information
     $Return = [PSCustomObject][ordered]@{
-        BiosDate         = [DateTime]$BiosDate
-        BiosVendor       = $BiosVendor
-        BiosVersion      = $BiosVersion
-        CPU              = $CPUData
-        CPUArchitecture  = $CPUArc
-        CPUThreads       = $CPUThreads
-        CPUCores         = $CPUCores
-        CPUSockets       = $Sockets
-        DistName         = $DistName.Replace('"', '')
-        DistSupportURL   = ($OSData | Where-Object { $_ -like "HOME_URL=*" }).TrimStart("HOME_URL=").Trim('"')
-        SystemDiskSize   = $DiskSizeNice
-        SystemDiskFree   = $DiskFreeNice
-        SystemDiskUsed   = $DiskUsedNice
-        GPU              = $DisplayData
-        DistVersion      = $DistVersion.Replace('"', '')
-        KernelRelease    = uname -r
-        OS               = uname -o
-        RAM              = $RAM
-        Manufacturer     = $SystemInfo.Manufacturer
-        ProductName      = $SystemInfo.ProductName
-        SystemVersion    = $SystemInfo.Version
-        SerialNumber     = $SystemInfo.SerialNumber
+        BiosDate        = [DateTime]$BiosDate
+        BiosVendor      = $BiosVendor
+        BiosVersion     = $BiosVersion
+        CPU             = $CPUData
+        CPUArchitecture = $CPUArc
+        CPUThreads      = $CPUThreads
+        CPUCores        = $CPUCores
+        CPUSockets      = $Sockets
+        DistName        = $DistName.Replace('"', '')
+        DistSupportURL  = ($OSData | Where-Object { $_ -like "HOME_URL=*" }).TrimStart("HOME_URL=").Trim('"')
+        SystemDiskSize  = $DiskSizeNice
+        SystemDiskFree  = $DiskFreeNice
+        SystemDiskUsed  = $DiskUsedNice
+        GPU             = $DisplayData
+        DistVersion     = $DistVersion.Replace('"', '')
+        KernelRelease   = uname -r
+        OS              = uname -o
+        RAM             = $RAM
+        Manufacturer    = $SystemInfo.Manufacturer
+        ProductName     = $SystemInfo.ProductName
+        SystemVersion   = $SystemInfo.Version
+        SerialNumber    = $SystemInfo.SerialNumber
     }
 
     # Display results to user
