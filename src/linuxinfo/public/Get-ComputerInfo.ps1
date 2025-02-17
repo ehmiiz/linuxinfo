@@ -16,8 +16,9 @@ function Get-ComputerInfo {
     )
 
     # Verifies required binary
-    Resolve-BinDep -Bins "lscpu", "awk", "lspci", "grep", "lsmem", "uname"
-
+    if (-not (Resolve-BinDep -Bins "lscpu", "awk", "lspci", "grep", "lsmem", "uname")) {
+        return
+    }
 
     $script:CPUData = lscpu | awk '/^Model name:/ || /^Socket\(s\):/ || /^Core\(s\) per socket:/ || /^Thread\(s\) per core:/ {print $0}' | Sort-Object
     
@@ -52,10 +53,18 @@ function Get-ComputerInfo {
         $ThreadsPerCore = $ThreadsPerCore.Trim(" ")
     }
     
-    # Make sure uname does not fail in the return table
+    # Get CPU architecture with fallbacks if uname -p returns unknown
     $CPUArc = uname -p
-    if ( -not $CPUArc) {
-        $CPUArc = "Unknown"
+    if ((-not $CPUArc) -or ($CPUArc -eq 'unknown')) {
+        # Try uname -m as first fallback
+        $CPUArc = uname -m
+        if ((-not $CPUArc) -or ($CPUArc -eq 'unknown')) {
+            # Try lscpu as second fallback
+            $CPUArc = (lscpu | Select-String -Pattern '^Architecture:').ToString().Split(':')[1].Trim()
+            if ((-not $CPUArc) -or ($CPUArc -eq 'unknown')) {
+                $CPUArc = "Unknown"
+            }
+        }
     }
 
     # Make CPU Thread count more robust, if parser failed, output unknown instead of error
