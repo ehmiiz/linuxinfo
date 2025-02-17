@@ -1,15 +1,63 @@
 function Get-ComputerInfo {
     <#
     .SYNOPSIS
-        Gathers information about the system and displays it to the user.
+        Gathers detailed system information from a Linux system.
     .DESCRIPTION
-        Uses lscpu, uname, os-release file, glxinfo, lsmem, /sys/class/dmi/id/(bios_date, bios_vendor, bios_version) files to filter out a PSCustomObject with useful system data.
+        Collects and returns comprehensive system information including:
+        - BIOS details (date, vendor, version)
+        - CPU information (model, architecture, threads, cores, sockets)
+        - Distribution details (name, version, support URL)
+        - System disk metrics (total, free, used space in GB)
+        - Graphics card information
+        - Memory information
+        - Kernel and OS details
+        - System information (manufacturer, product name, version, serial)
+
+        The function uses various Linux system commands and files:
+        - lscpu: CPU information
+        - uname: System and kernel information
+        - lspci: Graphics card details
+        - lsmem: Memory information
+        - /etc/os-release: Distribution details
+        - /sys/class/dmi/id/*: BIOS information (non-WSL)
+        - WMI queries: BIOS information (WSL)
+        - dmidecode: System information (requires sudo)
+
+    .OUTPUTS
+        PSCustomObject with the following properties:
+        - BiosDate: DateTime of BIOS release
+        - BiosVendor: Manufacturer of BIOS
+        - BiosVersion: BIOS version string
+        - CPU: Processor model name
+        - CPUArchitecture: Processor architecture
+        - CPUThreads: Total number of CPU threads
+        - CPUCores: Total number of CPU cores
+        - CPUSockets: Number of CPU sockets
+        - DistName: Linux distribution name
+        - DistSupportURL: Distribution's support URL
+        - SystemDiskSize: Total system disk size
+        - SystemDiskFree: Available disk space
+        - SystemDiskUsed: Used disk space
+        - GPU: Graphics card information
+        - DistVersion: Distribution version
+        - KernelRelease: Linux kernel version
+        - OS: Operating system name
+        - RAM: Total system memory
+        - Manufacturer: System manufacturer
+        - ProductName: System product name
+        - SystemVersion: System version
+        - SerialNumber: System serial number
+
     .NOTES
-        Author: Emil Larsson, 2023-03-27
-        I don't expect this script to be very robust, since it's using a lot of text manipulation
+        Author: Emil Larsson
+        Date: 2023-03-27
+        
+        The script handles both native Linux and Windows Subsystem for Linux (WSL) environments,
+        using different methods to gather BIOS information in each case.
+
     .EXAMPLE
         Get-ComputerInfo
-        Gets an object with computer information.
+        Returns a detailed object containing system information.
     #>
     [CmdletBinding()]
     param (
@@ -34,6 +82,11 @@ function Get-ComputerInfo {
     $RAM = (lsmem | Select-String 'Total online memory:' -Raw ).Split(':    ')[1]
     if ($RAM -like "* *") {
         $RAM = $RAM.Replace(" ", "")
+    }
+    # Convert RAM to rounded GB if it ends with 'G'
+    if ($RAM -match '(\d+\.?\d*)G$') {
+        $ramValue = [decimal]$Matches[1]
+        $RAM = "{0}GB" -f [Math]::Ceiling($ramValue)
     }
 
     # CPU Regex
@@ -92,7 +145,7 @@ function Get-ComputerInfo {
     # Fix disk display:
     $DiskSizeNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskSize"; E = { ($_.Free + $_.Used) / 1GB } } | Where-Object { $_.DiskSize -gt 0 }).DiskSize | ForEach-Object {
         if ($_ -ge 1) {
-            [int]$_
+            "{0}GB" -f [int]$_
         }
     }
 
@@ -102,7 +155,7 @@ function Get-ComputerInfo {
 
     $DiskFreeNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskFree"; E = { ($_.Free) / 1GB } } | Where-Object { $_.DiskFree -gt 0 }).DiskFree | ForEach-Object {
         if ($_ -ge 1) {
-            [int]$_
+            "{0}GB" -f [int]$_
         }
     }
 
@@ -112,7 +165,7 @@ function Get-ComputerInfo {
 
     $DiskUsedNice = (Get-PSDrive -Name "/" | Select-Object  @{L = "DiskUsed"; E = { ($_.Used) / 1GB } } | Where-Object { $_.DiskUsed -gt 0 }).DiskUsed | ForEach-Object {
         if ($_ -ge 1) {
-            [int]$_
+            "{0}GB" -f [int]$_
         }
     }
 
@@ -120,38 +173,10 @@ function Get-ComputerInfo {
         $DiskUsedNice = $DiskUsedNice[0]
     }
 
-    $IsWSL = Get-Item Env:WSL_DISTRO_NAME -ErrorAction SilentlyContinue
-    
-    if ($IsWSL) {
-        $SB = { 
-            Get-CimInstance Win32_BIOS | Select-Object @{
-                l = "BiosVersion"; e = {
-                    $_.BiosVersion | Select-Object -Last 1
-                }
-            },
-            @{
-                l = "DisplayData"; e = {
-                    (Get-CimInstance Win32_DisplayConfiguration).DeviceName
-                }
-            },
-            Manufacturer, ReleaseDate
-        }
-
-        $PowerShellOutput = powershell.exe -c $SB
-
-        if ( -not $DisplayData) {
-            $DisplayData = $PowerShellOutput.DisplayData
-        }
-        
-        $BiosDate = $PowerShellOutput.ReleaseDate
-        $BiosVendor = $PowerShellOutput.Manufacturer
-        $BiosVersion = $PowerShellOutput.BiosVersion
-    }
-    else {
-        $BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
-        $BiosVendor = Get-Content "/sys/class/dmi/id/bios_vendor"
-        $BiosVersion = Get-Content "/sys/class/dmi/id/bios_version"
-    }
+    # Get BIOS information directly from DMI
+    $BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
+    $BiosVendor = Get-Content "/sys/class/dmi/id/bios_vendor"
+    $BiosVersion = Get-Content "/sys/class/dmi/id/bios_version"
 
     if ($CPUData[1].Replace("  ", "").Split(":")[1] -like " *") {
         $CPUData = $CPUData[1].Replace("  ", "").Split(":")[1].TrimStart(" ")
@@ -160,6 +185,36 @@ function Get-ComputerInfo {
         $CPUData = $CPUData[1].Replace("  ", "").Split(":")[1]
     }
 
+    # Get system information using dmidecode
+    $SystemInfo = @{
+        Manufacturer = "Unknown"
+        ProductName = "Unknown"
+        Version = "Unknown"
+        SerialNumber = "Unknown"
+    }
+
+    try {
+        # Check if sudo is available
+        if (Get-Command sudo -ErrorAction SilentlyContinue) {
+            Write-Verbose "Attempting to get system information using dmidecode"
+            $DmiOutput = sudo dmidecode -t system 2>$null
+            
+            if ($DmiOutput) {
+                $SystemInfo.Manufacturer = ($DmiOutput | Select-String "Manufacturer:" -Raw).Split(":")[1].Trim()
+                $SystemInfo.ProductName = ($DmiOutput | Select-String "Product Name:" -Raw).Split(":")[1].Trim()
+                $SystemInfo.Version = ($DmiOutput | Select-String "Version:" -Raw).Split(":")[1].Trim()
+                $SystemInfo.SerialNumber = ($DmiOutput | Select-String "Serial Number:" -Raw).Split(":")[1].Trim()
+            }
+        }
+        else {
+            Write-Verbose "sudo not available - system information will be limited"
+        }
+    }
+    catch {
+        Write-Verbose "Unable to get system information using dmidecode: $_"
+    }
+
+    # Modify the return object to include system information
     $Return = [PSCustomObject][ordered]@{
         BiosDate         = [DateTime]$BiosDate
         BiosVendor       = $BiosVendor
@@ -171,17 +226,20 @@ function Get-ComputerInfo {
         CPUSockets       = $Sockets
         DistName         = $DistName.Replace('"', '')
         DistSupportURL   = ($OSData | Where-Object { $_ -like "HOME_URL=*" }).TrimStart("HOME_URL=").Trim('"')
-        SystemDiskSizeGb = $DiskSizeNice
-        SystemDiskFreeGb = $DiskFreeNice
-        SystemDiskUsedGb = $DiskUsedNice
+        SystemDiskSize   = $DiskSizeNice
+        SystemDiskFree   = $DiskFreeNice
+        SystemDiskUsed   = $DiskUsedNice
         GPU              = $DisplayData
         DistVersion      = $DistVersion.Replace('"', '')
         KernelRelease    = uname -r
         OS               = uname -o
         RAM              = $RAM
+        Manufacturer     = $SystemInfo.Manufacturer
+        ProductName      = $SystemInfo.ProductName
+        SystemVersion    = $SystemInfo.Version
+        SerialNumber     = $SystemInfo.SerialNumber
     }
 
     # Display results to user
     $Return
-
 }
