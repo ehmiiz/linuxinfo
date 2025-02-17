@@ -117,12 +117,13 @@ function Get-FileSystemHelp {
     }
     elseif ($Name -and $Full) {
         $FullInfo = ($JsonData | ConvertFrom-Json).$name
-        $return = $Script:directorysExplained | Select-Object $name,@{l='Full';e={$FullInfo}} | Format-Table -Wrap -ErrorAction SilentlyContinue
-        return $return
+        return @{
+            $Name = $Script:directorysExplained[$Name]
+            Full = $FullInfo
+        }
     }
     elseif ($Name) {
-        $return = $Script:directorysExplained | Select-Object $name -ErrorAction SilentlyContinue
-        return $return
+        return @{$Name = $Script:directorysExplained[$Name]}
     }
     # The last line of code initilizes the functions param section and generates the script-scoped variables
 }
