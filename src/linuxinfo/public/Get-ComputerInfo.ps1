@@ -73,9 +73,25 @@ function Get-ComputerInfo {
     $script:OSData = (Get-Content /etc/os-release) | Select-String -Pattern '(?<=NAME=|VERSION=|PRETTY_NAME=|HOME_URL=|SUPPORT_END=)[^,\n]+' -Raw
     
     # DisplayData
-    $DisplayData = (lspci | grep -i vga) -split ":" | Select-Object -Last 1
-    if ($DisplayData -like " *") {
-        $DisplayData = $DisplayData.TrimStart(" ")
+    $IsWSL = Get-Item Env:WSL_DISTRO_NAME -ErrorAction SilentlyContinue
+    
+    if ($IsWSL) {
+        try {
+            $DisplayData = powershell.exe -Command "Get-WmiObject Win32_VideoController | Select-Object -ExpandProperty Description" 2>$null
+            if ([string]::IsNullOrEmpty($DisplayData)) {
+                $DisplayData = "Unknown"
+            }
+        }
+        catch {
+            Write-Verbose "Unable to get GPU information from Windows host: $_"
+            $DisplayData = "Unknown"
+        }
+    }
+    else {
+        $DisplayData = (lspci | grep -i vga) -split ":" | Select-Object -Last 1
+        if ($DisplayData -like " *") {
+            $DisplayData = $DisplayData.TrimStart(" ")
+        }
     }
 
     # Ram
@@ -149,28 +165,62 @@ function Get-ComputerInfo {
     Write-Verbose ("Used GB raw: {0}" -f ($diskInfo.Used/1GB))
 
     # Fix disk display:
-    $DiskSizeNice = "{0:N2}GB" -f (((Get-PSDrive -Name "/").Used + (Get-PSDrive -Name "/").Free) / 1GB)
-    $DiskFreeNice = "{0:N2}GB" -f ((Get-PSDrive -Name "/").Free / 1GB)
-    $DiskUsedNice = "{0:N2}GB" -f ((Get-PSDrive -Name "/").Used / 1GB)
-
-    # Get BIOS information directly from DMI
-    $BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
-    $BiosVendor = Get-Content "/sys/class/dmi/id/bios_vendor"
-    $BiosVersion = Get-Content "/sys/class/dmi/id/bios_version"
-
-    if ($CPUData[1].Replace("  ", "").Split(":")[1] -like " *") {
-        $CPUData = $CPUData[1].Replace("  ", "").Split(":")[1].TrimStart(" ")
+    try {
+        $DiskSizeNice = "{0:N2}GB" -f (($diskInfo.Used + $diskInfo.Free) / 1GB)
+        $DiskFreeNice = "{0:N2}GB" -f ($diskInfo.Free / 1GB)
+        $DiskUsedNice = "{0:N2}GB" -f ($diskInfo.Used / 1GB)
     }
-    else {
-        $CPUData = $CPUData[1].Replace("  ", "").Split(":")[1]
+    catch {
+        Write-Verbose "Error calculating disk space: $_"
+        $DiskSizeNice = "Unknown"
+        $DiskFreeNice = "Unknown"
+        $DiskUsedNice = "Unknown"
     }
 
-    # Get system information using dmidecode
+    # Get system information using dmidecode or set WSL defaults
     $SystemInfo = @{
         Manufacturer = "Unknown"
         ProductName  = "Unknown"
         Version      = "Unknown"
         SerialNumber = "Unknown"
+    }
+
+    # Get BIOS information based on environment (WSL vs native Linux)
+    $IsWSL = Get-Item Env:WSL_DISTRO_NAME -ErrorAction SilentlyContinue
+    
+    if ($IsWSL) {
+        # For WSL, get BIOS info from Windows host using WMI
+        try {
+            $BiosInfo = powershell.exe -Command "Get-WmiObject Win32_BIOS" 2>$null
+            $BiosDate = $BiosInfo.ReleaseDate
+            $BiosVendor = $BiosInfo.Manufacturer
+            $BiosVersion = $BiosInfo.SMBIOSBIOSVersion
+        }
+        catch {
+            Write-Verbose "Unable to get BIOS information from Windows host: $_"
+            $BiosDate = "01/01/1970"
+            $BiosVendor = "Unknown"
+            $BiosVersion = "Unknown"
+        }
+
+        $SystemInfo = @{
+            Manufacturer = "Microsoft Corporation"
+            ProductName  = "Windows Subsystem for Linux"
+            Version      = $WSLVersion
+            SerialNumber = "WSL"
+        }
+    }
+    else {
+        $BiosDate = Get-Content "/sys/class/dmi/id/bios_date"
+        $BiosVendor = Get-Content "/sys/class/dmi/id/bios_vendor"
+        $BiosVersion = Get-Content "/sys/class/dmi/id/bios_version"
+    }
+
+    if ($CPUData[1] -match "Model name:\s*(.+)") {
+        $CPUData = $Matches[1].Trim()
+    }
+    else {
+        $CPUData = "Unknown"
     }
 
     try {
@@ -194,9 +244,21 @@ function Get-ComputerInfo {
         Write-Verbose "Unable to get system information using dmidecode: $_"
     }
 
+    # Parse BIOS date before creating return object
+    $ParsedBiosDate = try {
+        if ($BiosDate -match '(\d{4})(\d{2})(\d{2})') {
+            [DateTime]::ParseExact("$($Matches[1])-$($Matches[2])-$($Matches[3])", 'yyyy-MM-dd', $null)
+        } else {
+            [DateTime]"01/01/1970"
+        }
+    } catch {
+        Write-Verbose "Failed to parse BIOS date: $_"
+        [DateTime]"01/01/1970"
+    }
+
     # Modify the return object to include system information
     $Return = [PSCustomObject][ordered]@{
-        BiosDate        = [DateTime]$BiosDate
+        BiosDate        = $ParsedBiosDate
         BiosVendor      = $BiosVendor
         BiosVersion     = $BiosVersion
         CPU             = $CPUData
