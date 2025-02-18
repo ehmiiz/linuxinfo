@@ -1,7 +1,6 @@
 ---
-external help file: linuxinfo-help.xml
 Module Name: linuxinfo
-online version:
+online version: https://github.com/ehmiiz/linuxinfo
 schema: 2.0.0
 ---
 
