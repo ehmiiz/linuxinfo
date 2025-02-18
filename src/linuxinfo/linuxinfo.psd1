@@ -12,7 +12,7 @@
 RootModule = './linuxinfo.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.4'
+ModuleVersion = '1.1.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ PowerShellVersion = '6.0.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = "Get-FileSystemHelp","Get-BatteryInfo", "Get-SystemUptime", "Get-ComputerInfo", "Get-OSInfo", "Get-DisplayInfo", "Get-NetworkInfo", "Get-USBInfo", "Convert-USBDataToObject"
+FunctionsToExport = "Get-FileSystemHelp","Get-BatteryInfo", "Get-SystemUptime", "Get-ComputerInfo", "Get-OSInfo", "Get-DisplayInfo", "Get-NetworkInfo", "Get-USBInfo", "Convert-USBDataToObject", "Get-PSNeofetch"
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'

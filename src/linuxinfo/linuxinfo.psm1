@@ -16,4 +16,4 @@ foreach($import in @($Functions )){
 New-Alias -Name 'ldexplain' -Value 'Get-FileSystemHelp'
 
 # Export everything in the directory
-Export-ModuleMember -Function @("Get-FileSystemHelp","Get-BatteryInfo", "Get-SystemUptime", "Get-ComputerInfo", "Get-OSInfo", "Get-DisplayInfo", "Get-NetworkInfo", "Get-USBInfo", "Convert-USBDataToObject") -Cmdlet * -Alias *
+Export-ModuleMember -Function @("Get-FileSystemHelp","Get-BatteryInfo", "Get-SystemUptime", "Get-ComputerInfo", "Get-OSInfo", "Get-DisplayInfo", "Get-NetworkInfo", "Get-USBInfo", "Convert-USBDataToObject", "Get-PSNeofetch") -Cmdlet * -Alias *
