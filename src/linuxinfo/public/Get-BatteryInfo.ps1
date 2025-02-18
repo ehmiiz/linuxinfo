@@ -53,7 +53,8 @@ function Get-BatteryInfo {
         # Find battery device
         $Battery = upower -e | Where-Object { $_ -match "BAT[0-9]" }
         if (-not $Battery) {
-            Write-Error 'No battery detected. This system may not have a battery or upower cannot detect it.' -ErrorAction Stop
+            Write-Warning 'No battery detected. This system may not have a battery or upower cannot detect it.'
+            return
         }
 
         # Define regex pattern for data extraction
@@ -77,15 +78,15 @@ function Get-BatteryInfo {
             State = $batteryData['state']
             IsRechargeable = [bool]($batteryData['rechargeable'] -eq 'yes')
             WarningLevel = $batteryData['warning-level']
-            Percentage = [decimal]($batteryData['percentage'] -replace '%')
-            Capacity = [decimal]($batteryData['capacity'] -replace '%')
+            Percentage = ($batteryData['percentage'] -match '[\d\.]+%') ? [decimal]($batteryData['percentage'] -replace '%') : $null
+            Capacity = ($batteryData['capacity'] -match '[\d\.]+%') ? [decimal]($batteryData['capacity'] -replace '%') : $null
             Technology = $batteryData['technology']
             TimeToEmpty = $batteryData['time to empty']
-            Energy = [decimal]($batteryData['energy'] -replace ' Wh')
-            EnergyFull = [decimal]($batteryData['energy-full'] -replace ' Wh')
-            EnergyRate = [decimal]($batteryData['energy-rate'] -replace ' W')
-            Voltage = [decimal]($batteryData['voltage'] -replace ' V')
-            ChargeCycles = [int]$batteryData['charge-cycles']
+            Energy = ($batteryData['energy'] -match '[\d\.]+\s*Wh') ? [decimal]($batteryData['energy'] -replace ' Wh') : $null
+            EnergyFull = ($batteryData['energy-full'] -match '[\d\.]+\s*Wh') ? [decimal]($batteryData['energy-full'] -replace ' Wh') : $null
+            EnergyRate = ($batteryData['energy-rate'] -match '[\d\.]+\s*W') ? [decimal]($batteryData['energy-rate'] -replace ' W') : $null
+            Voltage = ($batteryData['voltage'] -match '[\d\.]+\s*V') ? [decimal]($batteryData['voltage'] -replace ' V') : $null
+            ChargeCycles = ($batteryData['charge-cycles'] -match '^\d+$') ? [int]$batteryData['charge-cycles'] : $null
         }
     }
     catch {
